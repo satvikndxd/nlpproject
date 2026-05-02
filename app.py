@@ -12,30 +12,51 @@ import tempfile
 import os
 from typing import List, Tuple, Optional
 import time
+import threading
 
 from pipeline import RAGPipeline, Chunk
 
 # Global pipeline instance
 pipeline: Optional[RAGPipeline] = None
 models_loaded = False
+models_loading = False
+
+
+def preload_models():
+    """Pre-load embedding model at startup (LLM loads lazily on first chat)."""
+    global pipeline, models_loaded, models_loading
+
+    if models_loading or models_loaded:
+        return
+
+    models_loading = True
+    print("Pre-loading embedding model (LLM loads on first chat)...")
+
+    pipeline = RAGPipeline(
+        chunk_size=500,
+        chunk_overlap=50,
+        embedding_model='sentence-transformers/all-MiniLM-L6-v2',
+        llm_model="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        top_k=5
+    )
+    # Only load embedding model at startup - LLM loads lazily
+    pipeline.embedder.load()
+    models_loaded = True
+    models_loading = False
+    print("✅ Embedding model ready! (LLM will load on first question)")
 
 
 def initialize_pipeline():
-    """Initialize the RAG pipeline with models."""
+    """Get the RAG pipeline (models should already be loaded)."""
     global pipeline, models_loaded
 
-    if pipeline is None:
-        pipeline = RAGPipeline(
-            chunk_size=500,
-            chunk_overlap=50,
-            embedding_model='sentence-transformers/all-MiniLM-L6-v2',
-            llm_model="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
-            top_k=5
-        )
+    # Wait for models if still loading
+    while models_loading:
+        time.sleep(0.5)
 
+    # Fallback: load if not already loaded
     if not models_loaded:
-        pipeline.load_models()
-        models_loaded = True
+        preload_models()
 
     return pipeline
 
@@ -319,10 +340,12 @@ def main():
     print("📄 PDF RAG Chat Application")
     print("=" * 60)
     print()
-    print("Starting Gradio server...")
+
+    # Pre-load embedding model at startup (LLM loads lazily)
+    print("Loading embedding model at startup...")
+    preload_models()
     print()
-    print("Note: Models will be loaded on first use.")
-    print("The first PDF processing and query may take longer.")
+    print("Starting Gradio server...")
     print()
 
     app = create_ui()
