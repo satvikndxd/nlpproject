@@ -190,7 +190,7 @@ def create_ui():
     .source-box { max-height: 400px; overflow-y: auto; }
     """
 
-    with gr.Blocks(css=css, title="PDF RAG Chat", theme=gr.themes.Soft()) as app:
+    with gr.Blocks() as app:
         gr.Markdown("""
         # 📄 PDF RAG Chat
 
@@ -332,7 +332,8 @@ def main():
         server_name="0.0.0.0",
         server_port=7860,
         share=False,
-        show_error=True
+        show_error=True,
+        pwa=False
     )
 
 
