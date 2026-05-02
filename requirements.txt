@@ -1,0 +1,23 @@
+# PDF Processing
+pdf2image>=1.16.3
+pytesseract>=0.3.10
+Pillow>=10.0.0
+
+# Embeddings and Vector Store
+sentence-transformers>=2.2.2
+faiss-cpu>=1.7.4
+numpy>=1.24.0
+
+# LLM
+transformers>=4.35.0
+torch>=2.0.0
+accelerate>=0.24.0
+
+# Tokenization for chunking
+tiktoken>=0.5.0
+
+# Web UI
+gradio>=4.0.0
+
+# Utilities
+tqdm>=4.66.0
